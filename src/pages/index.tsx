@@ -70,7 +70,6 @@ export default function Home() {
 
   useEffect(() => {
     if (clientsInQueue > 0) {
-      ``;
       setNext((state) => state + 1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
