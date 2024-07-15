@@ -11,25 +11,49 @@ type Counter = {
 
 type CounterProcessingTimeInputType = { counterNumber: number };
 
+type NumberInputProps = {
+  name: string;
+  label: string;
+  min?: string;
+  max?: string;
+  defaultValue?: string;
+};
+
 const CounterRow = (props: Counter) => (
-  <tr>
+  <tr data-testid={`counter_${props.id}_row`}>
     <td>Counter {props.id}</td>
     <td>{props.processing}</td>
     <td>{props.processed.join(", ")}</td>
   </tr>
 );
 
-const CounterProcessingTimeInput = (props: CounterProcessingTimeInputType) => (
+const NumberInput = ({
+  label,
+  name,
+  defaultValue,
+  max,
+  min,
+}: NumberInputProps) => (
   <div className="input">
-    <p>Counter {props.counterNumber} Processing Time</p>
+    <label>{label}</label>
     <input
-      min="2"
-      max="5"
       type="number"
-      name={`counter_${props.counterNumber}`}
-      defaultValue={2}
+      min={min}
+      max={max}
+      name={name}
+      defaultValue={defaultValue}
     />
   </div>
+);
+
+const CounterProcessingTimeInput = (props: CounterProcessingTimeInputType) => (
+  <NumberInput
+    label={`Counter ${props.counterNumber} Processing Time`}
+    name={`counter_${props.counterNumber}`}
+    defaultValue="2"
+    min="2"
+    max="5"
+  />
 );
 
 const withList = (Component: ComponentType<CounterProcessingTimeInputType>) => {
@@ -59,7 +83,7 @@ const withTable = (Component: ComponentType<Counter>) => {
   );
 };
 
-const CountersList = withList(CounterProcessingTimeInput);
+const CountersInitialsList = withList(CounterProcessingTimeInput);
 
 const CountersTable = withTable(CounterRow);
 
@@ -79,7 +103,7 @@ export default function Home() {
   const [idleTrigger, setIdleTrigger] = useState(idles);
   const processingTimers = useRef<Array<NodeJS.Timeout>>([]);
 
-  const startProcessing = (
+  const startProcessingClient = (
     counterIndex: number,
     currentNumberProcessing: number
   ) => {
@@ -116,7 +140,7 @@ export default function Home() {
 
     setClientsInQueue((state) => state - 1);
     setNext((state) => state + 1);
-    startProcessing(availableCounter, next);
+    startProcessingClient(availableCounter, next);
   }, [next, clientsInQueue, idleTrigger]);
 
   const onChangeInit = (e: FormEvent<HTMLFormElement>) => {
@@ -146,6 +170,8 @@ export default function Home() {
     setNext(1);
   };
 
+  const addClientInQueue = () => setClientsInQueue((state) => state + 1);
+
   return (
     <main className="main">
       <h1>Bank Counter</h1>
@@ -153,18 +179,15 @@ export default function Home() {
       <CountersTable counters={counters} />
 
       <h4>Number of people waiting : {clientsInQueue}</h4>
-      <button onClick={() => setClientsInQueue((state) => state + 1)}>
-        Next {next}
-      </button>
+      <button onClick={addClientInQueue}>Next {next}</button>
 
       <hr />
+
       <h2>Set Initial State</h2>
+
       <form className="initial_state_input_container" onSubmit={onChangeInit}>
-        <CountersList counters={counters} />
-        <div className="input">
-          <p>Start Number</p>
-          <input type="number" name="start-number" />
-        </div>
+        <CountersInitialsList counters={counters} />
+        <NumberInput label="Start Number" name="start-number" />
         <button type="submit">Change Init</button>
       </form>
     </main>
